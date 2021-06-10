@@ -1,8 +1,3 @@
-DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
-DB_NAME = "d6br3mamlectc2"
-DB_USER = "rtzklqyvvpdqcf"
-DB_PASS = "8f33893cccc6db6294049a9cb3eebd05ac2ef2c946f9c3c241b8ce45a9b6afe5"
-
 import datetime
 from datetime import date
 from datetime import datetime
