@@ -1,0 +1,54 @@
+SELECT * FROM productlist
+
+ALTER TABLE productlist ADD COLUMN id BIGSERIAL NOT NULL;
+
+INSERT INTO productlist VALUES ('Поронайск', 1200);
+
+ALTER TABLE productlist ADD COLUMN datetime timestamp DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE productlist DROP COLUMN datetime1;
+
+ALTER TABLE productlist ADD COLUMN date_return DATE;
+
+ALTER TABLE productlist DROP COLUMN id;
+
+ALTER TABLE productlist DROP COLUMN date_return;
+
+ALTER TABLE productlist DROP COLUMN datetime;
+
+
+SELECT * FROM productlist
+
+ALTER TABLE productlist ADD COLUMN id BIGSERIAL NOT NULL;
+
+INSERT INTO productlist VALUES ('Поронайск', 1200);
+
+ALTER TABLE productlist ADD COLUMN datetime timestamp DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE productlist DROP COLUMN datetime1;
+
+ALTER TABLE productlist ADD COLUMN date_return DATE;
+
+ALTER TABLE productlist ADD COLUMN fire_auto VARCHAR(25);
+
+ALTER TABLE productlist ADD COLUMN gov_number VARCHAR(25);
+
+ALTER TABLE productlist ADD COLUMN speedometr_start integer;
+
+ALTER TABLE productlist ADD COLUMN speedometr_end integer;
+
+ALTER TABLE productlist DROP COLUMN id;
+
+ALTER TABLE productlist DROP COLUMN date_return;
+
+ALTER TABLE productlist DROP COLUMN datetime;
+
+ALTER TABLE productlist ADD COLUMN date_return DATE;
+
+SELECT timezone('Asia/Sakhalin','2016-06-01 00:00');
+
+SELECT CURRENT_TIMESTAMP;
+
+SET timezone = 'Asia/Sakhalin';
+
+ALTER TABLE productlist ADD COLUMN time_start TIME;
