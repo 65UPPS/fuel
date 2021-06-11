@@ -1,122 +1,74 @@
 @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@600&display=swap');
-/*
-.input_card{
-    margin: 50px 0px 0px 20px;
-    max-width: 452px;
-    min-width: 452px;
-    border: 1px solid #e6e3df;;
-    background-color: #e6e3df;
-    box-shadow: 0px 0px 10px #ADABA9;
-}
+@import url('https://fonts.googleapis.com/css2?family=Bree+Serif&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Oswald:wght@700&display=swap');
 
-*/
-
-/*
-.contact_form input {
-    position: relative;
-    border: 1px solid #aaa;
-    border-radius: 1px;
+.login_name{
+    font-size: 20px;
+    margin: 0px 0px 15px 0px;
     font-family: 'Spectral', serif;
-    font-size: 18px;
-    max-width: 240px;
-    min-width: 240px;
-    box-shadow: inset 2px 2px 2px rgba(154, 147, 140, 0.5), 1px 1px 1px rgba(255, 255, 255, 1);
-    background-color: #f8f8f4;
-    box-sizing: border-box;
-    margin: 0px 0px 0px 165px;
-    color: #372224;
-    text-align: right;
-
+    font-weight: bold;
+    text-shadow: 1px 1px 0 rgba(256,256,256,1.0);
 }
 
-*/
 
+
+#fire_auto, #gov_number, .first_date, #values{
+    margin: 0px 0px 5px;
+}
 
 input:focus{
     background-color: #f8f8f4;
     font-family: 'Spectral', serif;
     font-size: 22px;
 }
-/*
-.department{
-    border-radius: 1px;
-    font-family: 'Spectral', serif;
-    font-size: 18px;
-    max-width: 240px;
-    min-width: 240px;
-    box-shadow: inset 2px 2px 2px rgba(154, 147, 140, 0.5), 1px 1px 1px rgba(255, 255, 255, 1);
-    background-color: #f8f8f4;
-    text-align: right;
 
-}
-
-
-/*
-.date_return input {
-    position: relative;
-    border: 1px solid #aaa;
-    border-radius: 1px;
-    font-family: 'Spectral', serif;
-    font-size: 18px;
-    box-shadow: inset 2px 2px 2px rgba(154, 147, 140, 0.5), 1px 1px 1px rgba(255, 255, 255, 1);
-    background-color: #f8f8f4;
-    box-sizing: border-box;
-    flex-direction:column;
-    flex-basis:100%;
-
-}
-
-*/
-::placeholder {
+::placeholder, div.Select-placeholder {
     color: red;
     font-size:12px;
 }
 
-div.Select-placeholder {
-    color: red;
-    font-size: 12px;
-
-
-}
-
-
 #brigate{
-    background: #e6e3df;
-    padding-bottom: 5px;
+    background: #f3f3f3;
+    margin: 0px 0px 5px 0px;
 }
 
-
+/*Та херня которая выскакивает*/
 .DateInput.DateInput_1{
-    background: #e6e3df;
-
+    background: #f3f3f3;
 }
 
-
+/*+*/
 .Select-placeholder{
-    background: #f8f8f4;
+    background: white;
+}
+
+.Select-placeholder:hover{
+    background: #dfe9ec;
+	color: #414848;
+
 }
 
 
+/*
 #department, #department2, #values1{
-    background: #f8f8f4;
-    margin-bottom: 5px;
-
+    background: white;
+    margin: 0px 0px 5px 0px;
 }
-
-
-
+*/
+/*Название отряда*/
 .Select-value{
-    background-color: #f8f8f4;
-
+    background-color: white;
 }
 
+.Select-value:hover, #date:hover{
+    background: #dfe9ec;
+	color: #414848;
+	}
 
 #date{
     min-width: 400px;
     box-sizing: border-box;
-    background-color: #f8f8f4;
-
-
+    background-color: white;
 }
 
 .form__error {
@@ -129,17 +81,77 @@ div.Select-placeholder {
 }
 
 .form {
+   /* background: url(../assets/bg.png) repeat;*/
 	display: inline-block;
-	padding: 25px;
+	padding: 15px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 	min-width: 400px;
-	background-color: #e6e3df;
-	box-shadow: 0px 0px 10px #ADABA9;
+	background-color: #f3f3f3;
+	box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
+	-moz-box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
+	-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
     margin: 90px 10px 0px 10px;
-
+    max-height: 800px;
 
 }
+
+.footer_form{
+    background-color: #d4dedf;
+    min-height: 125px;
+    border-top: 1px solid #fff;
+}
+
+.form button {
+    position: relative;
+    top: 50px;
+	float:left;
+    font-family: 'Spectral', serif;
+	font-weight: 300;
+	font-size: 14px;
+	color: #fff;
+	text-shadow: 0px 1px 0 rgba(0,0,0,0.25);
+
+	background: #56c2e1;
+	border: 1px solid #46b3d3;
+	border-radius: 5px;
+	cursor: pointer;
+
+	box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
+	-moz-box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
+	-webkit-box-shadow: inset 0 0 2px rgba(256,256,256,0.75);
+}
+
+.form button:hover {
+    background: #3f9db8;
+	border: 1px solid rgba(256,256,256,0.75);
+
+	box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+	-moz-box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+	-webkit-box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.form button:focus {
+	position: relative;
+	bottom: -1px;
+
+	background: #56c2e1;
+
+	box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
+	-moz-box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
+	-webkit-box-shadow: inset 0 1px 6px rgba(256,256,256,0.75);
+}
+
+.form button{
+
+	transition: all 1s;
+	-moz-transition: all 1s;
+	-webkit-transition: all 1s;
+	-o-transition: all 1s;
+	-ms-transition: all 1s;
+	outline:none;
+}
+
 
 .form__field {
 	margin-bottom: 10px;
@@ -158,24 +170,20 @@ div.Select-placeholder {
 	outline: none;
 	display: block;
 	width: 100%;
-	border-radius: 2px;
+	border-radius: 1px;
 	border: 1px solid #ccc;
-	padding: 10px;
+	/*padding: 10px;*/
 	box-sizing: border-box;
-	background-color: #f8f8f4;
+	background-color: white;
 	margin-bottom: 5px;
 	box-shadow: inset 2px 2px 2px rgba(154, 147, 140, 0.5), 1px 1px 1px rgba(255, 255, 255, 1);
-
-
 }
 
-.form button {
-	width: 100%;
-	padding: 10px;
-	border-radius: 2px;
-	border: 0;
-	background-color: #ccc;
-	color: #fff;
+
+
+.form input:hover {
+	background: #dfe9ec;
+	color: #414848;
 }
 
 input:valid:not(:placeholder-shown) {
@@ -191,26 +199,19 @@ input:invalid:not(:placeholder-shown) + .form__error {
 
 
 .table{
-
     min-width: 640px;
     margin: 90px 10px 0px 0px;
-
-
 }
 
 .graph{
     min-width: 640px;
     margin: 90px 0px 0px 0px;
-        border: 1px solid black;
-
-
-
-}
-
-
-
-.first_line{
-
-    display:flex;
     border: 1px solid black;
 }
+
+.first_line{
+    display:flex;
+    border: 1px solid red;
+    padding: 20px;
+}
+

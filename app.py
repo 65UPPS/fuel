@@ -1,3 +1,8 @@
+DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
+DB_NAME = "d6br3mamlectc2"
+DB_USER = "rtzklqyvvpdqcf"
+DB_PASS = "8f33893cccc6db6294049a9cb3eebd05ac2ef2c946f9c3c241b8ce45a9b6afe5"
+
 import datetime
 from datetime import date
 from datetime import datetime
@@ -78,23 +83,25 @@ app.layout = html.Div([
 
                 # Пожарный отряд
                 # html.Pre('Пожарный отряд:'),
+                html.Pre('Введите данные:', className='login_name'),
                 dcc.Dropdown(id='brigate', options=[{'label': a, "value": a} for a in suka.keys()],
                              value='Макаров', placeholder="Выберите название отряда", searchable=True),
-                html.Span('Это поле должно содержать E-Mail в формате example@site.com', className='form__error'),
-
+                # html.Span('Это поле должно содержать E-Mail в формате example@site.com', className='form__error'),
                 # Пожарная часть
                 # html.Pre('Пожарная часть:'),
                 dcc.Dropdown(id='values', options=[], placeholder="Выберете название ПЧ"),
-                html.Span('Это поле должно содержать текстовое значение', className='form__error'),
+                # html.Span('Это поле должно содержать текстовое значение', className='form__error'),
 
                 # Календарь
                 # html.Pre('Дата выезда (м/д/г):'),
-                dcc.DatePickerSingle(id='calendar', month_format='MMMM Y', placeholder='MMMM Y', date=date(datetime.now(
-                ).year, datetime.now().month, datetime.now().day), first_day_of_week=1),
+                html.Div(dcc.DatePickerSingle(id='calendar', month_format='MMMM Y', placeholder='MMMM Y', date=date(
+                    datetime.now().year, datetime.now().month, datetime.now().day), first_day_of_week=1),
+                         className='first_date'),
 
                 # Время выезда
                 # html.Pre('Время выезда:'),
-                dbc.Input(id='time_out', type="text", placeholder="Время выезда", value='08:00', required=True),
+                dbc.Input(id='time_out', type="text", placeholder="Время выезда", value='08:00', required=True,
+                          autoComplete='off'),
 
                 # Пожарная техника
                 # html.Pre('Пожарная техника:'),
@@ -106,46 +113,51 @@ app.layout = html.Div([
                 dcc.Dropdown(id='gov_number', placeholder="Государственный номер", value="",
                              style={'background-color': '#e6e3df'}, options=[]),
 
-
                 # Показание спидометра при выезде
                 # html.Pre('Показание спидометра при выезде:'),
                 dbc.Input(id='speedometr_start', type="number", placeholder="Показание спидометра при выезде",
-                          required=True),
+                          required=True, autoComplete='off'),
 
                 # Показание спидометра при возвращении
                 # html.Pre('Показание спидометра при возвращении:'),
                 dbc.Input(id='speedometr_end', type='number', placeholder="Показание спидометра на момент прибытия",
-                          required=True),
+                          required=True, autoComplete='off'),
 
                 # Работа с насосом, мин
                 # html.Pre('Работа с насосом, мин:'),
-                dbc.Input(id='work_pump', type="number", placeholder="Работа с насосом", required=True),
+                dbc.Input(id='work_pump', type="number", placeholder="Работа с насосом", required=True,
+                          autoComplete='off'),
 
                 # Работа без насоса, мин
                 # html.Pre('Работа без насоса, мин:'),
-                dbc.Input(id='without_pump', type="number", placeholder="Работа без насоса", required=True),
+                dbc.Input(id='without_pump', type="number", placeholder="Работа без насоса", required=True,
+                          autoComplete='off'),
 
                 # Фактический расход топлива, л
                 # html.Pre('Фактический расход топлива, л:'),
-                dbc.Input(id='department4', type="number", placeholder="Фактический расход", required=True),
+                dbc.Input(id='department4', type="number", placeholder="Фактический расход", required=True,
+                          autoComplete='off'),
 
                 # Дата возвращения (м/д/г)
                 # html.Pre('Дата возвращения (месяц/день/год):'),
-                dcc.DatePickerSingle(id='date_return', month_format='MMMM Y', placeholder='MMMM Y', date=date(
+                html.Div(dcc.DatePickerSingle(id='date_return', month_format='MMMM Y', placeholder='MMMM Y', date=date(
                     datetime.now(
-                    ).year, datetime.now().month, datetime.now().day), first_day_of_week=1, className="date_return"),
+                    ).year, datetime.now().month, datetime.now().day), first_day_of_week=1, className="date_return")),
 
                 # Время возвращения
                 # html.Pre('Время возвращения:'),
-                dbc.Input(id='time_return', type="text", placeholder="Время возвращения", value='08:00', required=True),
+                dbc.Input(id='time_return', type="text", placeholder="Время возвращения", value='08:00', required=True,
+                          autoComplete='off'),
 
                 # Основание выезда
                 # html.Pre('Основание выезда:'),
-                dbc.Input(id='reason_leaving', type="text", placeholder="Основание для выезда", required=True),
+                dbc.Input(id='reason_leaving', type="text", placeholder="Основание для выезда", required=True,
+                          autoComplete='off'),
 
             ], className='form__field'),
+            html.Div(
 
-            html.Button('Сохранить', id='save_to_postgres', n_clicks=0),
+                html.Button('Сохранить', id='save_to_postgres', n_clicks=0), className='footer_form'),
         ], className='form'),
 
         html.Form(dash_table.DataTable(
@@ -154,6 +166,7 @@ app.layout = html.Div([
                      ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
                       'спидометр при выезде',
                       'спидометр при возвращении', 'фактический расход', 'нормативный расчет']],
+            page_size = 18,
             data=[],
             style_cell={
                 'minWidth': '41px', 'width': '41px', 'maxWidth': '55px',
@@ -187,19 +200,16 @@ app.layout = html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
         dcc.Interval(id='interval', interval=1000),
-        dcc.Interval(id='interval1', interval=1000),
 
     ])
 ])
 
 
-
-
 @app.callback(
     [dash.dependencies.Output('values', 'options'),
-    dash.dependencies.Output('fire_auto', 'options')],
+     dash.dependencies.Output('fire_auto', 'options')],
     [
-    dash.dependencies.Input('brigate', 'value'),
+        dash.dependencies.Input('brigate', 'value'),
 
     ],
 )
@@ -216,27 +226,17 @@ def update_output(brigate):
 )
 def update_output(fire_auto, brigate):
     list_gov_number = [{'label': a, 'value': a} for a in suka[brigate][fire_auto]]
-
-
-
-
-
     return list_gov_number
 
 
-
 @app.callback(
-
     [dash.dependencies.Output('placeholder', 'children'),
-     dash.dependencies.Output("store", "data"),
-     ],
+     dash.dependencies.Output("store", "data")],
+
     [dash.dependencies.Input('save_to_postgres', 'n_clicks'),
-     dash.dependencies.Input("interval", "n_intervals"),
+     dash.dependencies.Input("interval", "n_intervals")],
 
-
-     ],
-    [
-     dash.dependencies.State('brigate', 'value'),
+    [dash.dependencies.State('brigate', 'value'),
      dash.dependencies.State('values', 'value'),
      dash.dependencies.State('store', 'data'),
      dash.dependencies.State('calendar', 'date'),
@@ -250,26 +250,19 @@ def update_output(fire_auto, brigate):
      dash.dependencies.State('department4', 'value'),
      dash.dependencies.State('date_return', 'date'),
      dash.dependencies.State('time_return', 'value'),
-     dash.dependencies.State('reason_leaving', 'value'),
-
-     ])
+     dash.dependencies.State('reason_leaving', 'value')
+     ], prevent_initial_call=True)
 def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out, fire_auto, gov_number,
                   speedometr_start, speedometr_end, work_pump, without_pump, department4, date_return, time_return,
                   reason_leaving):
-
-    output = html.Plaintext("Спасибо, Ваши данные сохранены в PostgreSQL",
+    output = html.Pre("Спасибо, Ваши данные сохранены в PostgreSQL",
                             style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
-    no_output = html.Plaintext("", style={'margin': "0px"})
+    # no_output = html.Pre("Не сохранены", style={'margin': "0px"})
+    no_output = html.Pre("", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
 
     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
 
     time = datetime.strptime(time_out, '%H:%M').time()
-
-    # list_department = [{'label': a, 'value': a} for a in suka['department'][0][brigate]['brigate']]
-    # list_fire_auto = [{'label': a, 'value': a} for a in suka['department'][0][brigate]['auto']]
-
-    # list_gov_number = [{'label': a, 'value': a} for a in suka['department'][0][department][fire_auto]]
-
 
     if input_triggered == 'save_to_postgres':
         s = 4
@@ -279,28 +272,29 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
                 f"INSERT INTO productlist VALUES ('{brigate}', '{values}', '{calendar}' , '{time_out}', "
                 f"'{gov_number}', '{fire_auto}', '{speedometr_start}', '{speedometr_end}', '{work_pump}', "
                 f"'{without_pump}', '{department4}', '{date_return}', '{time_return}', '{reason_leaving}')")
-        return output, s,
+        return output, s
 
     elif input_triggered == 'interval' and s > 0:
         s = s - 1
+        print(s)
         if s > 0:
             return output, s
-
         else:
             return no_output, s
 
     elif s == 0:
         return no_output, s
 
+
 @app.callback(
     [dash.dependencies.Output('my_graph', 'figure'),
      dash.dependencies.Output('the_table', 'data')],
     [dash.dependencies.Input('brigate', 'value'),
      dash.dependencies.Input('values', 'value'),
-     dash.dependencies.Input("interval1", "n_intervals")],
+     ],
     [dash.dependencies.State('the_table', 'data')],
     prevent_initial_call=True)
-def display_graph(department, values, interval1, data):
+def display_graph(department, values, data):
     with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute("SELECT * FROM total_consumption_join_main4;")
