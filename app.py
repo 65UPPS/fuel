@@ -1,3 +1,5 @@
+from flask_sqlalchemy import SQLAlchemy
+
 DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
 DB_NAME = "d6br3mamlectc2"
 DB_USER = "rtzklqyvvpdqcf"
@@ -64,17 +66,22 @@ server = app.server
 
 # with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
 #     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-#     cur.execute("SELECT * FROM productlist;")
+#     cur.execute("SELECT count(*) FROM total_consumption_join_main4;")
 #     data = cur.fetchall()
+#     print(data)
 
 
 # app.server.config["SQLALCHEMY_DATABASE_URI"] = \
 #     'postgresql://tinwqzwytvlios:4914678fe9df3d09af79ff8471077cdde4616e7400a3ab8f0312e41817566821@ec2-63-34-97-163.eu' \
 #     '-west-1.compute.amazonaws.com:5432/dahabnlnvjhvm7'
-#
+# #
 # db = SQLAlchemy(app.server)
 #
 # df = pd.read_sql_table('productlist', con=db.engine)
+# with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
+#     cur = conn.cursor()
+#     count_str = cur.execute('SELECT * FROM productlist;')
+
 
 app.layout = html.Div([
     html.Div([
@@ -274,6 +281,9 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
                 f"INSERT INTO productlist VALUES ('{brigate}', '{values}', '{calendar}' , '{time_out}', "
                 f"'{gov_number}', '{fire_auto}', '{speedometr_start}', '{speedometr_end}', '{work_pump}', "
                 f"'{without_pump}', '{department4}', '{date_return}', '{time_return}', '{reason_leaving}')")
+
+
+
         return output, s
 
     elif input_triggered == 'interval' and s > 0:
