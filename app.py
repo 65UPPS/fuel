@@ -200,6 +200,7 @@ app.layout = html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
         dcc.Interval(id='interval', interval=1000),
+        dcc.Interval(id='interval1', interval=1000),
 
     ])
 ])
@@ -258,14 +259,15 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
     output = html.Pre("Спасибо, Ваши данные сохранены в PostgreSQL",
                             style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
     # no_output = html.Pre("Не сохранены", style={'margin': "0px"})
-    no_output = html.Pre("", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
+    no_output = html.Pre("Не сохранены", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
 
     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
 
     time = datetime.strptime(time_out, '%H:%M').time()
-
+    print(input_triggered)
     if input_triggered == 'save_to_postgres':
         s = 4
+        print(s)
         with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -291,10 +293,10 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
      dash.dependencies.Output('the_table', 'data')],
     [dash.dependencies.Input('brigate', 'value'),
      dash.dependencies.Input('values', 'value'),
-     ],
+     dash.dependencies.Input("interval1", "n_intervals")],
     [dash.dependencies.State('the_table', 'data')],
     prevent_initial_call=True)
-def display_graph(department, values, data):
+def display_graph(department, values, interval1, data):
     with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute("SELECT * FROM total_consumption_join_main4;")
