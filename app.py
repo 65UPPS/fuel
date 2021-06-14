@@ -167,49 +167,61 @@ app.layout = html.Div([
                 html.Button('Сохранить', id='save_to_postgres', n_clicks=0), className='footer_form'),
         ], className='form'),
 
-        html.Form(dash_table.DataTable(
-            id='the_table',
-            columns=[{"name": c, "id": c} for c in
-                     ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
-                      'спидометр при выезде',
-                      'спидометр при возвращении', 'фактический расход', 'нормативный расчет']],
-            page_size = 18,
-            data=[],
-            style_cell={
-                'minWidth': '41px', 'width': '41px', 'maxWidth': '55px',
-                'whiteSpace': 'normal'
-            },
-            style_header={
-                'fontWeight': 'bold'
-            },
+        html.Form([
 
-            style_cell_conditional=[
+            dcc.Dropdown(id='brigate2', options=[{'label': a, "value": a} for a in suka.keys()],
+                         value='Макаров', placeholder="Выберите название отряда", searchable=True,
+                         className='department_dropdown'),
+            html.Br(),
 
-                {'textAlign': 'center'},
-
-            ],
-            sort_action='native',
-            style_data_conditional=[
-                {
-                    'if': {
-                        'filter_query': '{общий пробег от нормы, %} > 32',
-                        'column_id': 'общий пробег от нормы, %'
-                    },
-                    'color': 'tomato',
+            dash_table.DataTable(
+                id='the_table',
+                columns=[{"name": c, "id": c} for c in
+                         ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
+                          'спидометр при выезде',
+                          'спидометр при возвращении', 'фактический расход', 'нормативный расчет']],
+                page_size=18,
+                data=[],
+                style_cell={
+                    'minWidth': '41px', 'width': '41px', 'maxWidth': '55px',
+                    'whiteSpace': 'normal'
+                },
+                style_header={
                     'fontWeight': 'bold'
-                }]), className='table'),
+                },
 
-        dcc.Graph(id='my_graph', className='graph'),
+                style_cell_conditional=[
+
+                    {'textAlign': 'center'},
+
+                ],
+                sort_action='native',
+                style_data_conditional=[
+                    {
+                        'if': {
+                            'filter_query': '{общий пробег от нормы, %} > 32',
+                            'column_id': 'общий пробег от нормы, %'
+                        },
+                        'color': 'tomato',
+                        'fontWeight': 'bold'
+                    }])], className='second_columns'),
+
+        html.Div([
+
+            dcc.Graph(id='my_graph', className='graph'),
+            html.Div('Фактический расход топлива: ', id='current_expence', className='graph'),
+            dcc.Graph(id='my_graph3', className='graph'),
+            dcc.Graph(id='my_graph4', className='graph')], className='third_columns'),
 
     ], className='first_line'),
 
     html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
-        dcc.Interval(id='interval', interval=1000),
-        dcc.Interval(id='interval1', interval=1000),
+        dcc.Interval(id='interval', interval=3000),
+        dcc.Interval(id='interval1', interval=3000),
 
-    ])
+    ]),
 ])
 
 
@@ -239,7 +251,8 @@ def update_output(fire_auto, brigate):
 
 @app.callback(
     [dash.dependencies.Output('placeholder', 'children'),
-     dash.dependencies.Output("store", "data")],
+     dash.dependencies.Output("store", "data")
+     ],
 
     [dash.dependencies.Input('save_to_postgres', 'n_clicks'),
      dash.dependencies.Input("interval", "n_intervals")],
@@ -258,23 +271,19 @@ def update_output(fire_auto, brigate):
      dash.dependencies.State('department4', 'value'),
      dash.dependencies.State('date_return', 'date'),
      dash.dependencies.State('time_return', 'value'),
-     dash.dependencies.State('reason_leaving', 'value')
+     dash.dependencies.State('reason_leaving', 'value'),
      ], prevent_initial_call=True)
 def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out, fire_auto, gov_number,
                   speedometr_start, speedometr_end, work_pump, without_pump, department4, date_return, time_return,
                   reason_leaving):
     output = html.Pre("Спасибо, Ваши данные сохранены в PostgreSQL",
-                            style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
+                      style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
     # no_output = html.Pre("Не сохранены", style={'margin': "0px"})
     no_output = html.Pre("Не сохранены", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
 
     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-
-    time = datetime.strptime(time_out, '%H:%M').time()
-    print(input_triggered)
     if input_triggered == 'save_to_postgres':
         s = 4
-        print(s)
         with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -282,13 +291,10 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
                 f"'{gov_number}', '{fire_auto}', '{speedometr_start}', '{speedometr_end}', '{work_pump}', "
                 f"'{without_pump}', '{department4}', '{date_return}', '{time_return}', '{reason_leaving}')")
 
-
-
         return output, s
 
     elif input_triggered == 'interval' and s > 0:
         s = s - 1
-        print(s)
         if s > 0:
             return output, s
         else:
@@ -300,17 +306,41 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
 
 @app.callback(
     [dash.dependencies.Output('my_graph', 'figure'),
-     dash.dependencies.Output('the_table', 'data')],
+     dash.dependencies.Output('the_table', 'data'),
+     dash.dependencies.Output("current_expence", "children")],
     [dash.dependencies.Input('brigate', 'value'),
      dash.dependencies.Input('values', 'value'),
-     dash.dependencies.Input("interval1", "n_intervals")],
-    [dash.dependencies.State('the_table', 'data')],
+     dash.dependencies.Input("interval1", "n_intervals"),
+     dash.dependencies.Input('brigate2', 'value'), ],
+    [dash.dependencies.State('the_table', 'data'),
+     ],
     prevent_initial_call=True)
-def display_graph(department, values, interval1, data):
+def display_graph(department, values, interval1, department_dropdown, data):
     with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute("SELECT * FROM total_consumption_join_main4;")
         data = cur.fetchall()
+
+        cur.execute("SET timezone = 'Asia/Sakhalin';")
+
+        cur.execute("SELECT * FROM date_current1;")
+
+        current_expence = cur.fetchone()
+
+        cur.execute("SELECT * FROM current_expence;")
+
+        current_expence_department = cur.fetchall()
+
+        current_expence_department = pd.DataFrame(current_expence_department, columns=['отряд', 'фактический расход'])
+
+        def current_expence_filter():
+            if department_dropdown != None:
+                current_expence = current_expence_department[(current_expence_department['отряд'] \
+                                                              == department_dropdown)]['фактический расход']
+                return html.H1(current_expence)
+            else:
+                current_expence1 = current_expence_department['фактический расход'].sum()
+                return current_expence1
 
         pg = pd.DataFrame(data, columns=['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
                                          'спидометр при выезде',
@@ -318,6 +348,16 @@ def display_graph(department, values, interval1, data):
         pg.loc[:, 'фактический расход'] = pd.to_numeric(pg['фактический расход'], errors='coerce')
 
         table_data = pg.copy()
+        table_data1 = pg.copy()
+
+        def table_data_filter():
+            if department_dropdown != None:
+                filtered_df = table_data[(table_data['отряд'] == department_dropdown)][
+                    ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер', 'спидометр при выезде',
+                     'спидометр при возвращении', 'фактический расход', 'нормативный расчет']]
+                return filtered_df
+            else:
+                return table_data1
 
         pg = round(pg.groupby(['отряд'], as_index=False)['фактический расход'].sum(), 2)
 
@@ -328,7 +368,7 @@ def display_graph(department, values, interval1, data):
 
         dff = round(dff.groupby(['отряд'], as_index=False)['фактический расход'].sum(), 2)
 
-    return fig, table_data.to_dict('records')
+    return fig, table_data_filter().to_dict('records'), current_expence_filter()
 
 
 if __name__ == '__main__':

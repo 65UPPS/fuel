@@ -52,3 +52,40 @@ SELECT CURRENT_TIMESTAMP;
 SET timezone = 'Asia/Sakhalin';
 
 ALTER TABLE productlist ADD COLUMN time_start TIME;
+
+SELECT * FROM productlist WHERE date_departure = CURRENT_DATE; выборка даты выезда по текущей дате
+
+
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
+
+
+SELECT "Name", SUM(actual_expense) AS sumExpense
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
+
+SELECT "Name", SUM(speedometr_end - speedometr_start) AS miles FROM productlist GROUP BY "Name"; определение суммы пробега сгруппированных по названию отряда
+
+SELECT *, (speedometr_end - speedometr_start) AS miles FROM productlist;	добавление в таблицу колонки с названием milse, значение которой является вычитание значений двух колонок
+
+SELECT *, EXTRACT (month FROM date_departure) AS current_month FROM productlist;   текущий месяц из колонки с датой
+
+
+Сумма значений колонок выведенных в таблицу в соотетствие с номером месяца загружаемого в ручную
+SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles
+FROM productlist WHERE EXTRACT (month FROM date_departure) = 6 GROUP BY "Name";
+
+
+SELECT EXTRACT(month FROM now())
+
+SELECT * FROM current_expence;
+
+
+SELECT NOW()::TIME(0);
+SELECT NOW()::DATE;
+
+SET timezone = 'Asia/Sakhalin';
+SHOW TIMEZONE;
+SELECT CURRENT_TIME(0);
+
+SELECT EXTRACT(month FROM now())
