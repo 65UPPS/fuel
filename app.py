@@ -1,5 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
 
+DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
+DB_NAME = "d6br3mamlectc2"
+DB_USER = "rtzklqyvvpdqcf"
+DB_PASS = "8f33893cccc6db6294049a9cb3eebd05ac2ef2c946f9c3c241b8ce45a9b6afe5"
+
 import datetime
 from datetime import date
 from datetime import datetime
@@ -77,9 +82,14 @@ server = app.server
 #     cur = conn.cursor()
 #     count_str = cur.execute('SELECT * FROM productlist;')
 
+reason = ['Взаимодействие со службами', 'ДТП', 'ЕТО', 'Заправка ГСМ', 'Иные выезда', 'Ложный', 'Обкатка после ',
+          'ТО', 'Оказание помощи населению', 'Отработка нормативов ГДЗС', 'Отработка нормативов ПС и ТСП',
+          'Отработка ПТП и КТП', 'Пожар', 'Проверка подразделения', 'ПТЗ', 'ПТУ']
 
 app.layout = html.Div([
+html.Div(html.H3('Оперативная обстановка за текущие сутки'), className='title'),
     html.Div([
+
         html.Form([
             html.Div([
 
@@ -148,18 +158,20 @@ app.layout = html.Div([
 
                 # Время возвращения
                 # html.Pre('Время возвращения:'),
+
                 dbc.Input(id='time_return', type="text", placeholder="Время возвращения", value='08:00', required=True,
                           autoComplete='off'),
 
                 # Основание выезда
                 # html.Pre('Основание выезда:'),
-                dbc.Input(id='reason_leaving', type="text", placeholder="Основание для выезда", required=True,
-                          autoComplete='off'),
+                dcc.Dropdown(id='reason_leaving', placeholder="Основание для выезда", value="",
+                             style={'background-color': '#e6e3df'}, options=[{'label': a, "value": a} for a in
+                                                                             reason]),
 
             ], className='form__field'),
-            html.Div(
 
-                html.Button('Сохранить', id='save_to_postgres', n_clicks=0), className='footer_form'),
+
+                html.Button('Сохранить', id='save_to_postgres', n_clicks=0),
         ], className='form'),
 
         html.Form([
@@ -174,8 +186,9 @@ app.layout = html.Div([
                 columns=[{"name": c, "id": c} for c in
                          ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
                           'спидометр при выезде',
-                          'спидометр при возвращении', 'фактический расход', 'нормативный расчет']],
-                page_size=18,
+                          'спидометр при возвращении', 'работа с насосом', 'работа без насоса', 'фактический расход',
+                          'нормативный расчет']],
+                page_size=14,
                 data=[],
                 style_cell={
                     'minWidth': '41px', 'width': '41px', 'maxWidth': '55px',
@@ -203,21 +216,27 @@ app.layout = html.Div([
 
         html.Div([
 
-            dcc.Graph(id='my_graph', className='graph'),
-            html.Div('Фактический расход топлива: ', id='current_expence', className='graph'),
-            dcc.Graph(id='my_graph3', className='graph'),
-            dcc.Graph(id='my_graph4', className='graph')], className='third_columns'),
-
+            html.Div([html.Pre('Количество\nвыездов'),
+                      html.Div(id='day_out')], className='i_graph'),
+            html.Div([html.Pre('Фактический\nрасход топлива'),
+                      html.Div(id='current_expence')], className='i_graph'),
+            html.Div([html.Pre('Пробег'),
+                      html.Div(id='day_miles')], className='i_graph'),
+            html.Div([html.Pre('Работа\nс насосом\n-------\nбез насоса'),
+                      html.Br(),
+                      html.Div(id='day_pump'),
+                      html.Div('-------', id='line'),
+                      html.Div(id='day_without_pump')], className='i_graph'), ], className='third_columns'),
     ], className='first_line'),
 
     html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
-        dcc.Interval(id='interval', interval=3000),
-        dcc.Interval(id='interval1', interval=3000),
+        dcc.Interval(id='interval', interval=10000),
+        dcc.Interval(id='interval1', interval=10000),
 
     ]),
-])
+], className='body')
 
 
 @app.callback(
@@ -225,7 +244,6 @@ app.layout = html.Div([
      dash.dependencies.Output('fire_auto', 'options')],
     [
         dash.dependencies.Input('brigate', 'value'),
-
     ],
 )
 def update_output(brigate):
@@ -248,10 +266,8 @@ def update_output(fire_auto, brigate):
     [dash.dependencies.Output('placeholder', 'children'),
      dash.dependencies.Output("store", "data")
      ],
-
     [dash.dependencies.Input('save_to_postgres', 'n_clicks'),
      dash.dependencies.Input("interval", "n_intervals")],
-
     [dash.dependencies.State('brigate', 'value'),
      dash.dependencies.State('values', 'value'),
      dash.dependencies.State('store', 'data'),
@@ -273,8 +289,7 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
                   reason_leaving):
     output = html.Pre("Спасибо, Ваши данные сохранены в PostgreSQL",
                       style={'color': 'green', 'font-weight': 'bold', 'font-size': 'large'})
-    # no_output = html.Pre("Не сохранены", style={'margin': "0px"})
-    no_output = html.Pre("Не сохранены", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
+    no_output = html.Pre("", style={'color': 'red', 'font-weight': 'bold', 'font-size': 'large'})
 
     input_triggered = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
     if input_triggered == 'save_to_postgres':
@@ -300,9 +315,14 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
 
 
 @app.callback(
-    [dash.dependencies.Output('my_graph', 'figure'),
+    [dash.dependencies.Output('day_out', 'children'),
      dash.dependencies.Output('the_table', 'data'),
-     dash.dependencies.Output("current_expence", "children")],
+     dash.dependencies.Output("current_expence", "children"),
+     dash.dependencies.Output("day_miles", "children"),
+     dash.dependencies.Output("day_pump", "children"),
+     dash.dependencies.Output("day_without_pump", "children"),
+
+     ],
     [dash.dependencies.Input('brigate', 'value'),
      dash.dependencies.Input('values', 'value'),
      dash.dependencies.Input("interval1", "n_intervals"),
@@ -313,33 +333,92 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
 def display_graph(department, values, interval1, department_dropdown, data):
     with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute("SELECT * FROM total_consumption_join_main4;")
+        cur.execute("SELECT * FROM day_raport;")
         data = cur.fetchall()
 
         cur.execute("SET timezone = 'Asia/Sakhalin';")
 
         cur.execute("SELECT * FROM date_current1;")
 
-        current_expence = cur.fetchone()
-
+        # запрос таблицы
         cur.execute("SELECT * FROM current_expence;")
-
         current_expence_department = cur.fetchall()
-
         current_expence_department = pd.DataFrame(current_expence_department, columns=['отряд', 'фактический расход'])
 
-        def current_expence_filter():
+        # запрос для def day_miles()
+        cur.execute("SELECT * FROM day_miles;")
+        current_day_miles = cur.fetchall()
+        current_day_miles_dataframe = pd.DataFrame(current_day_miles, columns=['отряд', 'пробег'])
+
+        # запрос для def day_out()
+        cur.execute("SELECT * FROM day_out;")
+        current_day_out = cur.fetchall()
+        current_day_out_dataframe = pd.DataFrame(current_day_out, columns=['отряд', 'выезд'])
+
+        # запрос для def day_pump()
+        cur.execute("SELECT * FROM day_pump;")
+        current_day_pump = cur.fetchall()
+        current_day_pump_dataframe = pd.DataFrame(current_day_pump, columns=['отряд', 'насос', 'без насоса'])
+
+        # запрос для def day_pump()
+        cur.execute("SELECT * FROM day_pump;")
+        current_day_pump = cur.fetchall()
+        current_day_pump_dataframe = pd.DataFrame(current_day_pump, columns=['отряд', 'насос', 'без насоса'])
+
+        def day_miles():
+            """Функция определения пробега пожарных автомобилей за текущие сутки"""
             if department_dropdown != None:
-                current_expence = current_expence_department[(current_expence_department['отряд'] \
-                                                              == department_dropdown)]['фактический расход']
+                day_miles = current_day_miles_dataframe[(current_day_miles_dataframe['отряд'] ==
+                                                         department_dropdown)]['пробег']
+                return html.H1(day_miles)
+            else:
+                day_miles1 = current_day_miles_dataframe['пробег'].sum()
+                return html.H1(day_miles1)
+
+        def day_out():
+            """Функция определения количества выездов за текущие сутки"""
+            if department_dropdown != None:
+                day_out = current_day_out_dataframe[(current_day_out_dataframe['отряд'] ==
+                                                     department_dropdown)]['выезд']
+                return html.H1(day_out)
+            else:
+                day_out1 = current_day_out_dataframe['выезд'].sum()
+                return html.H1(day_out1)
+
+        def day_pump():
+            """Функция определения работы пожарных автомобилей с насосом и без насоса за текущие сутки"""
+            if department_dropdown != None:
+                day_pump = current_day_pump_dataframe[(current_day_pump_dataframe['отряд'] ==
+                                                       department_dropdown)]['насос']
+                return html.H1(day_pump)
+            else:
+                day_pump1 = current_day_pump_dataframe['насос'].sum()
+                return html.H1(day_pump1)
+
+        def day_without_pump():
+            """Функция определения работы пожарных автомобилей с насосом и без насоса за текущие сутки"""
+            if department_dropdown != None:
+                day_without_pump = current_day_pump_dataframe[(current_day_pump_dataframe['отряд'] ==
+                                                               department_dropdown)]['без насоса']
+                return html.H1(day_without_pump)
+            else:
+                day_without_pump1 = current_day_pump_dataframe['без насоса'].sum()
+                return html.H1(day_without_pump1)
+
+        def current_expence_filter():
+            """Функция фактического расхода топлива за текущие сутки"""
+            if department_dropdown != None:
+                current_expence = current_expence_department[(current_expence_department['отряд'] ==
+                                                              department_dropdown)]['фактический расход']
                 return html.H1(current_expence)
             else:
                 current_expence1 = current_expence_department['фактический расход'].sum()
-                return current_expence1
+                return html.H1(current_expence1)
 
         pg = pd.DataFrame(data, columns=['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер',
                                          'спидометр при выезде',
-                                         'спидометр при возвращении', 'фактический расход', 'нормативный расчет'])
+                                         'спидометр при возвращении', 'работа с насосом', 'работа без насоса',
+                                         'фактический расход', 'нормативный расчет'])
         pg.loc[:, 'фактический расход'] = pd.to_numeric(pg['фактический расход'], errors='coerce')
 
         table_data = pg.copy()
@@ -349,21 +428,14 @@ def display_graph(department, values, interval1, department_dropdown, data):
             if department_dropdown != None:
                 filtered_df = table_data[(table_data['отряд'] == department_dropdown)][
                     ['дата', 'отряд', 'часть', 'основание выезда', 'пожарная техника', 'номер', 'спидометр при выезде',
-                     'спидометр при возвращении', 'фактический расход', 'нормативный расчет']]
+                     'спидометр при возвращении', 'работа с насосом', 'работа без насоса', 'фактический расход',
+                     'нормативный расчет']]
                 return filtered_df
             else:
                 return table_data1
 
-        pg = round(pg.groupby(['отряд'], as_index=False)['фактический расход'].sum(), 2)
-
-        fig = px.bar(pg, x='отряд', y='фактический расход')
-
-        dff = pg.copy()
-        dff.loc[:, 'фактический расход'] = pd.to_numeric(dff['фактический расход'], errors='coerce')
-
-        dff = round(dff.groupby(['отряд'], as_index=False)['фактический расход'].sum(), 2)
-
-    return fig, table_data_filter().to_dict('records'), current_expence_filter()
+    return day_out(), table_data_filter().to_dict('records'), current_expence_filter(), day_miles(), day_pump(), \
+           day_without_pump()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Oswald:wght@700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
 .login_name{
     font-size: 20px;
     margin: 0px 0px 15px 0px;
@@ -91,27 +91,20 @@ input:focus{
 	box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
 	-moz-box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
 	-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.15);
-    margin: 90px 10px 0px 10px;
-    max-height: 800px;
+    margin: 30px 10px 0px 10px;
+    max-height: 700px;
 
-}
-
-.footer_form{
-    background-color: #d4dedf;
-    min-height: 125px;
-    border-top: 1px solid #fff;
 }
 
 .form button {
     position: relative;
-    top: 50px;
 	float:left;
     font-family: 'Spectral', serif;
 	font-weight: 300;
 	font-size: 14px;
 	color: #fff;
 	text-shadow: 0px 1px 0 rgba(0,0,0,0.25);
-
+    height:50px;
 	background: #56c2e1;
 	border: 1px solid #46b3d3;
 	border-radius: 5px;
@@ -200,18 +193,93 @@ input:invalid:not(:placeholder-shown) + .form__error {
 
 .table{
     min-width: 640px;
-    margin: 90px 10px 0px 0px;
+    margin: 30px 10px 0px 0px;
 }
 
-.graph{
-    min-width: 640px;
-    margin: 90px 0px 0px 0px;
-    border: 1px solid black;
+
+
+.i_graph{
+   /* border: 1px solid black;*/
+    background:#d4dedf;
+    max-height: 478px;
+    opacity: 0.8;
+    flex: 1 0 42%;
+    box-sizing: border-box;
+    align-items:center;
+    margin: 0px 10px 10px;
+    -moz-box-shadow:    1px 1px 1px 1px #ccc;
+    -webkit-box-shadow: 1px 1px 1px 1px #ccc;
+    box-shadow:         1px 1px 2px 2px #ccc;
 }
+
+
+.body{
+    display:flex;
+    flex-wrap:wrap;
+    min-width: 1900px;
+    max-width: 1900px;
+
+
+}
+
+
 
 .first_line{
     display:flex;
-    border: 1px solid red;
     padding: 20px;
+    min-width: 1850px;
+    max-width: 1850px;
+
+
+
 }
 
+.third_columns{
+    display:flex;
+    /*border: 1px solid red;*/
+    margin: 30px 0px 0px 0px;
+    max-width: 700px;
+    flex-wrap:wrap;
+
+}
+
+.second_columns{
+   /* border: 1px solid red;*/
+    margin: 30px 10px 0px 0px;
+    min-width: 950px;
+
+}
+
+Pre{
+    font-size: 18px;
+    text-align: center;
+    font-family: 'Russo One', sans-serif;
+    align-items:center;
+    color: #2f4c7a;
+    text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+
+
+}
+
+#current_expence, #day_miles, #day_out, #day_pump, #day_without_pump, #line {
+    position: relative;
+    font-size: 18px;
+    text-align: center;
+    font-family: 'Russo One', sans-serif;
+    align-items:center;
+    color: #2f4c7a;
+    margin: 30px 0px 0px 0px;
+    text-shadow: 5px 5px 9px rgba(255,255,255,0.1);
+    font-weight:bold;
+}
+
+.title{
+    text-align: center;
+    font-family: 'Russo One', sans-serif;
+    color: #2f4c7a;
+    flex: 0 1 100%;
+    margin: 10px 0px 0px 0px;
+    box-sizing: border-box;
+
+
+}
