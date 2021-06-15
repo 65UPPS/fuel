@@ -119,3 +119,18 @@ create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump FROM prod
 SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
 
 
+--СОЗДАНИЕ ТАБЛИЦЫ ДЛЯ ОТЧЕТА ГСМ
+
+create view total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
+       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
+	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
+	   ON (productlist.gov_number = FuelDirectory.govnumber);
+
+SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
+SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption
+FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind;   
+
+
+DROP view total_consumption_join_main1;
+
+SELECT * FROM total_consumption_join_main2;
