@@ -53,39 +53,69 @@ SET timezone = 'Asia/Sakhalin';
 
 ALTER TABLE productlist ADD COLUMN time_start TIME;
 
-SELECT * FROM productlist WHERE date_departure = CURRENT_DATE; выборка даты выезда по текущей дате
 
 
-FROM productlist WHERE date_departure = CURRENT_DATE
-GROUP BY "Name";
 
 
-SELECT "Name", SUM(actual_expense) AS sumExpense
-FROM productlist WHERE date_departure = CURRENT_DATE
-GROUP BY "Name";
+SELECT * FROM productlist;
 
-SELECT "Name", SUM(speedometr_end - speedometr_start) AS miles FROM productlist GROUP BY "Name"; определение суммы пробега сгруппированных по названию отряда
+ALTER TABLE productlist ADD COLUMN datetime timestamp DEFAULT CURRENT_TIMESTAMP;
 
-SELECT *, (speedometr_end - speedometr_start) AS miles FROM productlist;	добавление в таблицу колонки с названием milse, значение которой является вычитание значений двух колонок
+SELECT * , speedometr_end-speedometr_start FROM productlist;
 
-SELECT *, EXTRACT (month FROM date_departure) AS current_month FROM productlist;   текущий месяц из колонки с датой
+DELETE FROM productlist;
 
+CREATE TABLE Public.FuelDirectory(govNumber varchar(15), fuelKind varchar(15), com_miles numeric, com_pump numeric, comp_withoutPump numeric)
 
-Сумма значений колонок выведенных в таблицу в соотетствие с номером месяца загружаемого в ручную
-SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles
-FROM productlist WHERE EXTRACT (month FROM date_departure) = 6 GROUP BY "Name";
+SELECT * FROM FuelDirectory;
 
 
-SELECT EXTRACT(month FROM now())
+DROP TABLE FuelDirectory;
 
-SELECT * FROM current_expence;
+MERGE FULL OUTER JOIN productlist ON productlist.gov_number = FuelDirectory.gov_number
+
+SELECT * FROM productlist, FuelDirectory WHERE gov_number = govnumber;
+
+SELECT * FROM productlist LEFT OUTER JOIN FuelDirectory ON (productlist.gov_number = FuelDirectory.govnumber);
+
+SELECT *, speedometr_end-speedometr_start AS miles, ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) AS value_com_miles,
+		  ROUND(work_pump*com_pump,3) AS values_com_pump,
+		  ROUND(without_pump*comp_withoutpump,3) AS values_com_withoutpump,
+		  ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,2) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) AS value_consumption
+		  FROM productlist LEFT OUTER JOIN FuelDirectory ON (productlist.gov_number = FuelDirectory.govnumber);
+
+ALTER TABLE productlist DROP COLUMN value_consumption;
+
+ALTER TABLE productlist ADD COLUMN value_consumption numeric;
+
+create view total_consumption_new as select 'productlist.Name', last_name, fire_auto, gov_number,  
+       work_pump + without_pump as total from productlist; - операции с COLUMNS
+
+create view total_consumption_join as select "Name", last_name, fire_auto, gov_number,  
+       work_pump + without_pump as total from productlist;
+
+create view total_consumption_join_main as select "Name", last_name, fire_auto, gov_number,  
+       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
+	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
+	   ON (productlist.gov_number = FuelDirectory.govnumber);
+
+SELECT * FROM total_consumption_join_main4;
+
+create view total_consumption_join_main4 as select date_departure, "Name", last_name, reason_leaving, fire_auto, gov_number, speedometr_start, speedometr_end, actual_expense,  
+       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
+	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
+	   ON (productlist.gov_number = FuelDirectory.govnumber);
+
+ALTER TABLE productlist
+ALTER COLUMN "actual_expense" TYPE numeric; - изменение типа данных COLUMN
 
 
-SELECT NOW()::TIME(0);
-SELECT NOW()::DATE;
+SELECT "Name", SUM(speedometr_end-speedometr_start) AS miles FROM productlist WHERE date_departure = current_date GROUP BY "Name";  ---пробег автомобилей за текущие сутки
 
-SET timezone = 'Asia/Sakhalin';
-SHOW TIMEZONE;
-SELECT CURRENT_TIME(0);
+create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
 
-SELECT EXTRACT(month FROM now())
+create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
+
+SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
+
+
