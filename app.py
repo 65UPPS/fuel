@@ -1,6 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 
-
+DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
+DB_NAME = "d6br3mamlectc2"
+DB_USER = "rtzklqyvvpdqcf"
+DB_PASS = "8f33893cccc6db6294049a9cb3eebd05ac2ef2c946f9c3c241b8ce45a9b6afe5"
 
 import datetime
 from datetime import date
@@ -84,7 +87,7 @@ reason = ['Взаимодействие со службами', 'ДТП', 'ЕТ�
           'Отработка ПТП и КТП', 'Пожар', 'Проверка подразделения', 'ПТЗ', 'ПТУ']
 
 app.layout = html.Div([
-html.Div(html.H3('Оперативная обстановка за текущие сутки'), className='title'),
+    html.Div(html.H3('Оперативная обстановка за текущие сутки'), className='title'),
     html.Div([
 
         html.Form([
@@ -167,8 +170,7 @@ html.Div(html.H3('Оперативная обстановка за текущи�
 
             ], className='form__field'),
 
-
-                html.Button('Сохранить', id='save_to_postgres', n_clicks=0),
+            html.Button('Сохранить', id='save_to_postgres', n_clicks=0),
         ], className='form'),
 
         html.Form([
@@ -217,20 +219,22 @@ html.Div(html.H3('Оперативная обстановка за текущи�
                       html.Div(id='day_out')], className='i_graph'),
             html.Div([html.Pre('Фактический\nрасход топлива'),
                       html.Div(id='current_expence')], className='i_graph'),
+            html.Div([html.Pre('Работа\nс насосом'),
+                      html.Div(id='day_pump')], className='i_graph'),
+            html.Div([html.Pre('Работа\nбез насоса'),
+                      html.Div(id='day_without_pump')], className='i_graph'),
             html.Div([html.Pre('Пробег'),
                       html.Div(id='day_miles')], className='i_graph'),
-            html.Div([html.Pre('Работа\nс насосом\n-------\nбез насоса'),
-                      html.Br(),
-                      html.Div(id='day_pump'),
-                      html.Div('-------', id='line'),
-                      html.Div(id='day_without_pump')], className='i_graph'), ], className='third_columns'),
+            html.Div([html.Pre('Пожары'),
+                      html.Div(id='day_fire')], className='i_graph')
+        ], className='third_columns'),
     ], className='first_line'),
 
     html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
-        dcc.Interval(id='interval', interval=10000),
-        dcc.Interval(id='interval1', interval=10000),
+        dcc.Interval(id='interval', interval=5000),
+        dcc.Interval(id='interval1', interval=5000),
 
     ]),
 ], className='body')
@@ -315,10 +319,11 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
     [dash.dependencies.Output('day_out', 'children'),
      dash.dependencies.Output('the_table', 'data'),
      dash.dependencies.Output("current_expence", "children"),
-     dash.dependencies.Output("day_miles", "children"),
+
      dash.dependencies.Output("day_pump", "children"),
      dash.dependencies.Output("day_without_pump", "children"),
-
+     dash.dependencies.Output("day_miles", "children"),
+     dash.dependencies.Output("day_fire", "children"),
      ],
     [dash.dependencies.Input('brigate', 'value'),
      dash.dependencies.Input('values', 'value'),
@@ -362,6 +367,11 @@ def display_graph(department, values, interval1, department_dropdown, data):
         current_day_pump = cur.fetchall()
         current_day_pump_dataframe = pd.DataFrame(current_day_pump, columns=['отряд', 'насос', 'без насоса'])
 
+        # запрос для def day_fire()
+        cur.execute("SELECT * FROM day_fire;")
+        current_day_fire = cur.fetchall()
+        current_day_fire_dataframe = pd.DataFrame(current_day_fire, columns=['отряд', 'пожары'])
+
         def day_miles():
             """Функция определения пробега пожарных автомобилей за текущие сутки"""
             if department_dropdown != None:
@@ -402,6 +412,16 @@ def display_graph(department, values, interval1, department_dropdown, data):
                 day_without_pump1 = current_day_pump_dataframe['без насоса'].sum()
                 return html.H1(day_without_pump1)
 
+        def day_fire():
+            """Функция определения количества пожаров за текущие сутки"""
+            if department_dropdown != None:
+                day_fire = current_day_fire_dataframe[(current_day_fire_dataframe['отряд'] ==
+                                                       department_dropdown)]['пожары']
+                return html.H1(day_fire)
+            else:
+                day_fire1 = current_day_fire_dataframe['пожары'].sum()
+                return html.H1(day_fire1)
+
         def current_expence_filter():
             """Функция фактического расхода топлива за текущие сутки"""
             if department_dropdown != None:
@@ -431,9 +451,10 @@ def display_graph(department, values, interval1, department_dropdown, data):
             else:
                 return table_data1
 
-    return day_out(), table_data_filter().to_dict('records'), current_expence_filter(), day_miles(), day_pump(), \
-           day_without_pump()
+    return day_out(), table_data_filter().to_dict('records'), current_expence_filter(), day_pump(), \
+           day_without_pump(), day_miles(), day_fire()
 
+print(1)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
