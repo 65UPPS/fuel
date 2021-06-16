@@ -119,18 +119,39 @@ create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump FROM prod
 SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
 
 
---СОЗДАНИЕ ТАБЛИЦЫ ДЛЯ ОТЧЕТА ГСМ
+SELECT gov_number, EXTRACT(month FROM date_departure) AS number_month, MIN(speedometr_start), MAX(speedometr_end) FROM productlist GROUP BY gov_number, number_month; ---минимальное и максимальное показание спидометра распределенное по месяцам
 
-create view total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
+
+create view raport_month as SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
+SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption, MIN(speedometr_start), MAX(speedometr_end)
+FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind; ----таблица с максимальным и минимальным значением показателей спидометра
+
+
+CREATE OR REPLACE VIEW total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
+       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
+	   AS value_consumption, ((speedometr_end-speedometr_start)+(work_pump*50)/60) AS overall_mileage FROM productlist LEFT OUTER JOIN FuelDirectory 
+	   ON (productlist.gov_number = FuelDirectory.govnumber);  ---- изменить и переписать представление view postgresql
+
+
+
+create view total_consumption_join_main as select "Name", last_name, fire_auto, gov_number,  
        ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
 	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
 	   ON (productlist.gov_number = FuelDirectory.govnumber);
-
-SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
-SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption
-FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind;   
-
-
-DROP view total_consumption_join_main1;
-
+	   
 SELECT * FROM total_consumption_join_main2;
+SELECT * FROM productlist;
+SELECT * FROM FuelDirectory;
+
+CREATE OR REPLACE VIEW total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
+       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
+	   AS value_consumption, ((speedometr_end-speedometr_start)+(work_pump*50)/60) AS overall_mileage, value_miles, miles_start_using FROM productlist right JOIN FuelDirectory 
+	   ON (productlist.gov_number = FuelDirectory.govnumber);
+	   
+CREATE OR REPLACE VIEW raport_month as SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, value_miles, miles_start_using, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
+SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption, MIN(speedometr_start), MAX(speedometr_end), SUM(overall_mileage) AS sum_overall_mileage
+FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind, value_miles, miles_start_using;
+
+DROP view raport_month;
+SELECT * FROM raport_month;
+SELECT * FROM raport_month ORDER BY "Name" desc;
