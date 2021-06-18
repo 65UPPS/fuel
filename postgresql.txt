@@ -107,7 +107,7 @@ create view total_consumption_join_main4 as select date_departure, "Name", last_
 	   ON (productlist.gov_number = FuelDirectory.govnumber);
 
 ALTER TABLE productlist
-ALTER COLUMN "actual_expense" TYPE numeric; - изменение типа данных COLUMN
+ALTER COLUMN "actual_expense" TYPE numeric; - изменение типа данных COLUMN ----- изменение типа столбца
 
 
 SELECT "Name", SUM(speedometr_end-speedometr_start) AS miles FROM productlist WHERE date_departure = current_date GROUP BY "Name";  ---пробег автомобилей за текущие сутки
@@ -155,3 +155,62 @@ FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_num
 DROP view raport_month;
 SELECT * FROM raport_month;
 SELECT * FROM raport_month ORDER BY "Name" desc;
+
+
+
+SELECT * FROM base_table;
+SELECT * FROM directory;
+SELECT * FROM base_table_aggregate;
+
+DELETE FROM dataset; 			--удаление данных с таблицы 
+
+SET timezone = 'Asia/Sakhalin'; --переход на часовой пояс Сахалинской области
+
+-- dataset - база данных;
+-- directory - справочник ГСМ;
+-- base_table - основная таблица;
+-- miles_auto - пробег автомобиля;
+
+SELECT *, EXTRACT(month FROM date_out) AS number_month FROM dataset; --номер месяца из даты
+
+ALTER TABLE dataset DROP COLUMN fire_brigate;
+
+DROP VIEW base_table;
+
+
+
+
+
+
+CREATE OR REPLACE VIEW base_table AS SELECT *, 												--создание представления base_table и выбор всех столбцов (*);
+(speedo_in-speedo_out) AS miles_auto,          												--создание колонки с пробегом miles_auto;
+CASE																						--создание условия для перевода на режим зима/лето и создание колонки con_fuel_miles;
+WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
+WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
+END
+AS con_fuel_miles,
+ROUND(with_pump*d_con_pump,3) AS con_fuel_pump, 											--создание колонки с расходом при работе с насосом con_fuel_pump;
+ROUND(without_pump*d_con_without_pump,3) AS con_fuel_without_pump, 							--создание колонки с расходом при работе без насоса con_fuel_without_pump;
+(ROUND(CASE
+WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
+WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
+END, 3) + ROUND(with_pump*d_con_pump,3) + ROUND(without_pump*d_con_without_pump,3)) AS con_total, --создание колонки общего расхода ГСМ путем суммирования колонок;
+EXTRACT(month FROM date_out) AS number_month													  --создание колонки с номером месяца функцией EXTRACT;
+FROM dataset left JOIN directory 																  --объеденение таблиц dataset и directory по колонке auto_number;
+ON (dataset.auto_number = directory.d_auto_number);
+
+
+MIN(speed_out), MAX(speed_in) FROM productlist GROUP BY gov_number, number_month; ---минимальное и максимальное показание спидометра распределенное по месяцам
+
+
+-- аггрегирование таблицы base_table и сортировка по номеру месяца
+CREATE OR REPLACE VIEW base_table_aggregate 
+AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month, 
+SUM(miles_auto) AS sum_miles_auto, 
+SUM(with_pump) AS sum_work_pump, 
+SUM(without_pump) AS sum_withoun_pump, 
+SUM(actual_expense) AS sum_actual_expense, 
+SUM(con_total) AS sum_con_total, 
+MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
+FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month 
+ORDER BY number_month desc; 

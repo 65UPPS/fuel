@@ -261,7 +261,7 @@ Pre{
 
 }
 
-#current_expence, #day_miles, #day_out, #day_pump, #day_without_pump, #line {
+#current_expence, #day_miles, #day_out, #day_pump, #day_without_pump, #day_fire {
     position: relative;
     font-size: 18px;
     text-align: center;

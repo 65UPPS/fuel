@@ -233,8 +233,8 @@ app.layout = html.Div([
     html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
-        dcc.Interval(id='interval', interval=5000),
-        dcc.Interval(id='interval1', interval=5000),
+        dcc.Interval(id='interval', interval=4000),
+        dcc.Interval(id='interval1', interval=4000),
 
     ]),
 ], className='body')
