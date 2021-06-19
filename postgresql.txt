@@ -243,3 +243,59 @@ SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_n
 
 SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage FROM base_table_2
 
+
+
+SELECT * FROM base_table_aggregate;
+
+CREATE OR REPLACE VIEW base_table AS SELECT *, 												--создание представления base_table и выбор всех столбцов (*);
+(speedo_in-speedo_out) AS miles_auto,          												--создание колонки с пробегом miles_auto;
+CASE																						--создание условия для перевода на режим зима/лето и создание колонки con_fuel_miles;
+WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
+WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
+END
+AS con_fuel_miles,
+ROUND(with_pump*d_con_pump,3) AS con_fuel_pump, 											--создание колонки с расходом при работе с насосом con_fuel_pump;
+ROUND(without_pump*d_con_without_pump,3) AS con_fuel_without_pump, 							--создание колонки с расходом при работе без насоса con_fuel_without_pump;
+(ROUND(CASE
+WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
+WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
+END, 3) + ROUND(with_pump*d_con_pump,3) + ROUND(without_pump*d_con_without_pump,3)) AS con_total, --создание колонки общего расхода ГСМ путем суммирования колонок;
+EXTRACT(month FROM date_out) AS number_month													  --создание колонки с номером месяца функцией EXTRACT;
+FROM dataset left JOIN directory 																  --объеденение таблиц dataset и directory по колонке auto_number;
+ON (dataset.auto_number = directory.d_auto_number);
+
+
+
+CREATE OR REPLACE VIEW base_table_aggregate 
+AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month,
+SUM(miles_auto) AS sum_miles_auto, 
+SUM(with_pump) AS sum_work_pump, 
+SUM(without_pump) AS sum_withoun_pump, 
+SUM(actual_expense) AS sum_actual_expense, 
+SUM(con_total) AS sum_con_total, 
+MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
+FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month
+ORDER BY auto_number asc; 
+
+
+SELECT * FROM base_table_2;
+SELECT * FROM base_table;
+SELECT * FROM base_table_aggregate;
+SELECT * FROM directory;
+
+CREATE OR REPLACE VIEW base_table_2 AS 
+SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
+ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
+(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation,
+sum_actual_expense, (SUM (sum_actual_expense) over(PARTITION BY "auto_number" rows between unbounded preceding and current row)) AS sum_actual_expense_year
+FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
+
+
+
+SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage
+
+SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage FROM base_table_2
+
+
+
+
