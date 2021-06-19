@@ -214,3 +214,32 @@ SUM(con_total) AS sum_con_total,
 MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
 FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month 
 ORDER BY number_month desc; 
+
+
+CREATE OR REPLACE VIEW base_table_aggregate 
+AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month,
+SUM(miles_auto) AS sum_miles_auto, 
+SUM(with_pump) AS sum_work_pump, 
+SUM(without_pump) AS sum_withoun_pump, 
+SUM(actual_expense) AS sum_actual_expense, 
+SUM(con_total) AS sum_con_total, 
+MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
+FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month
+ORDER BY auto_number asc; 
+
+
+SELECT * FROM base_table_2;
+SELECT * FROM base_table;
+SELECT * FROM base_table_aggregate;
+SELECT * FROM directory;
+
+CREATE OR REPLACE VIEW base_table_2 AS 
+SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
+ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
+(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation
+FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
+
+SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage
+
+SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage FROM base_table_2
+
