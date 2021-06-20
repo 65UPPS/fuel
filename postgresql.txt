@@ -298,4 +298,47 @@ SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY 
 
 
 
+CREATE OR REPLACE VIEW refueling_table_aggregate AS
+SELECT EXTRACT(month FROM r_date_refueling) AS number_month, r_auto_number, SUM(r_refueling) AS sum_r_refueling
+FROM refueling WHERE r_date_refueling >= '2021-01-01' GROUP BY EXTRACT(month FROM r_date_refueling), r_auto_number ORDER BY r_auto_number, number_month;
+
+SELECT * FROM refueling_table_aggregate;
+SELECT * FROM day_raport;
+
+CREATE OR REPLACE VIEW dataset_month AS
+SELECT * FROM dataset WHERE date_out > '2021-06-15';
+
+
+CREATE OR REPLACE VIEW refueling_table_aggregate2 AS 
+SELECT number_month, r_auto_number, sum_r_refueling,
+	(SUM(sum_r_refueling) over(PARTITION BY "r_auto_number" rows between unbounded preceding and current row)) AS sum_refueling_year
+FROM refueling_table_aggregate;
+
+SELECT * FROM refueling_table_aggregate2;
+SELECT * FROM base_table_2;
+SELECT * FROM aggregate_mileage;
+
+CREATE OR REPLACE VIEW aggregate_mileage AS 
+SELECT fire_department, auto,  auto_number, d_fire_brigate, base_table_2.number_month, aggregate_mileage, d_total_mileage_max_value,
+d_total_mileage_since_operation, total_mileage_since_operation, sum_actual_expense, sum_actual_expense_year, COALESCE(sum_r_refueling,0) AS sum_r_refueling, COALESCE(sum_refueling_year,0) AS sum_refueling_year
+FROM base_table_2 left JOIN refueling_table_aggregate2 																 
+ON (base_table_2.auto_number = refueling_table_aggregate2.r_auto_number AND base_table_2.number_month = refueling_table_aggregate2.number_month);
+
+DROP VIEW aggregate_mileage
+SELECT *,
+       CASE WHEN sum_r_refueling = NULL THEN 0
+            
+       END
+    FROM aggregate_mileage;
+
+
+CREATE OR REPLACE VIEW base_table_2 AS 
+SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
+ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
+(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation,
+sum_actual_expense, (SUM (sum_actual_expense) over(PARTITION BY "auto_number" rows between unbounded preceding and current row)) AS sum_actual_expense_year
+FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
+
+
+
 
