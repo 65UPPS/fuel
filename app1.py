@@ -1,4 +1,7 @@
-
+DB_HOST = 'ec2-54-74-14-109.eu-west-1.compute.amazonaws.com'
+DB_NAME = "de0fglpocdb2up"
+DB_USER = "jgpjdpqktnjurl"
+DB_PASS = "479cbe7cb2935b6151a1145e1bce96e7575bcecfd5d581ea214210358d1b0172"
 
 from datetime import datetime
 
@@ -37,7 +40,17 @@ server = app.server
 #                                                                                               'конец месяца',
 #                                                         'общий пробег месяц'])
 
+html.Div(className='neumorphism-box')
+
 app.layout = html.Div([
+
+    html.Div([
+        html.Div([
+            html.Div('New Blog', className='primary text'),
+            html.Div('Read it now!', className='secondary text')
+        ], className='btn blog-button')
+    ], className='neumorphism-box'),
+
     html.Div(html.H3('Отчет ГСМ за месяц'), className='title'),
 
     html.Div([
@@ -107,10 +120,10 @@ app.layout = html.Div([
             dash_table.DataTable(
                 id='raport_month_table2',
                 columns=[{"name": c, "id": c} for c in
-                         ['Пожарная часть', 'Пожарная техника', 'Номер', 'Вид топлива',
-                          'Отряд', 'Номер месяца', 'Пробег',
-                          'Работа с насосом', 'Работа без насоса',
-                          'Фактический расход', 'Нормативный расход', 'Проверка пробега']],
+                         ['Пожарная часть', 'Пожарная техника', 'Номер', 'Общий пробег месяц',
+                          'Норма общего пробега год', 'Общий пробег с начала года',
+                          'Общий пробег с начала эксплуатации', 'Расход ГСМ месяц', 'Расход ГСМ с начала года',
+                          'Заправка ГСМ месяц', 'Заправка ГСМ год']],
                 page_size=25,
                 data=[],
                 style_cell={
@@ -137,7 +150,7 @@ app.layout = html.Div([
                         'fontWeight': 'bold'
                     }]),
             dcc.Store(id="store1", data=0),
-            html.Div(dcc.Interval(id='interval_page', interval=3000))
+            html.Div(dcc.Interval(id='interval_page', interval=4000))
 
         ], className='second_columns'),
 
@@ -148,6 +161,7 @@ app.layout = html.Div([
 
 @app.callback(
     [dash.dependencies.Output('raport_month_table', 'data'),
+
      dash.dependencies.Output('raport_month_table2', 'data'),
      ],
     [dash.dependencies.Input("interval_page", "n_intervals"),
@@ -167,6 +181,9 @@ def raport_month_table(n_intervals, dropdown_month, dropdown_department, dropdow
         cur.execute("SELECT * FROM base_table_aggregate;")
         data_table = cur.fetchall()
 
+        cur.execute("SELECT * FROM aggregate_mileage;")
+        data_table2 = cur.fetchall()
+
         cur.execute("SET timezone = 'Asia/Sakhalin';")
 
         # запрос таблицы
@@ -178,23 +195,32 @@ def raport_month_table(n_intervals, dropdown_month, dropdown_department, dropdow
                                                                                             'начало месяца',
                                                 'Показание спидометра на конец месяца', 'Проверка пробега'])
 
-    raport_month_table = \
-        data_table_base[
-            (data_table_base['Номер месяца'] == dropdown_month) & (data_table_base['Отряд'] == dropdown_department) & (
-                    data_table_base['Вид топлива'] == dropdown_fuel_type)][
-            ['Пожарная часть', 'Пожарная техника', 'Номер', 'Отряд', 'Номер месяца', 'Пробег',
-             'Работа с насосом', 'Работа без насоса', 'Фактический расход', 'Нормативный расход',
-             'Показание спидометра на начало месяца', 'Показание спидометра на конец месяца']]
+        raport_month_table = \
+            data_table_base[
+                (data_table_base['Номер месяца'] == dropdown_month) & (
+                        data_table_base['Отряд'] == dropdown_department) & (
+                        data_table_base['Вид топлива'] == dropdown_fuel_type)][
+                ['Пожарная часть', 'Пожарная техника', 'Номер', 'Отряд', 'Номер месяца', 'Пробег',
+                 'Работа с насосом', 'Работа без насоса', 'Фактический расход', 'Нормативный расход',
+                 'Показание спидометра на начало месяца', 'Показание спидометра на конец месяца']]
 
-    raport_month_table1 = \
-        data_table_base[
-            (data_table_base['Номер месяца'] == dropdown_month) & (data_table_base['Отряд'] == dropdown_department)][
-            ['Пожарная часть', 'Пожарная техника', 'Номер', 'Вид топлива',
-             'Отряд', 'Номер месяца', 'Пробег',
-             'Работа с насосом', 'Работа без насоса',
-             'Фактический расход', 'Нормативный расход']]
+        # запрос таблицы
+        data_table_base2 = pd.DataFrame(data_table2,
+                                        columns=['Пожарная часть', 'Пожарная техника', 'Номер',
+                                                 'Отряд', 'Номер месяца', 'Общий пробег месяц',
+                                                 'Норма общего пробега год', 'Общий пробег с начала года',
+                                                 'Общий пробег с начала эксплуатации', 'Расход ГСМ месяц',
+                                                 'Расход ГСМ с начала года', 'Заправка ГСМ месяц', 'Заправка ГСМ год'])
 
-    return raport_month_table.to_dict('records'), raport_month_table1.to_dict('records')
+        raport_month_table2 = \
+            data_table_base2[
+                (data_table_base2['Номер месяца'] == dropdown_month) & (
+                        data_table_base2['Отряд'] == dropdown_department)][
+                ['Пожарная часть', 'Пожарная техника', 'Номер', 'Общий пробег месяц', 'Норма общего пробега год',
+                 'Общий пробег с начала года', 'Общий пробег с начала эксплуатации', 'Расход ГСМ месяц',
+                 'Расход ГСМ с начала года', 'Заправка ГСМ месяц', 'Заправка ГСМ год']]
+
+    return raport_month_table.to_dict('records'), raport_month_table2.to_dict('records')
 
 
 if __name__ == '__main__':

@@ -53,292 +53,99 @@ SET timezone = 'Asia/Sakhalin';
 
 ALTER TABLE productlist ADD COLUMN time_start TIME;
 
+SELECT * FROM productlist WHERE date_departure = CURRENT_DATE; выборка даты выезда по текущей дате
 
 
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
 
 
-SELECT * FROM productlist;
+SELECT "Name", SUM(actual_expense) AS sumExpense
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
 
-ALTER TABLE productlist ADD COLUMN datetime timestamp DEFAULT CURRENT_TIMESTAMP;
+SELECT "Name", SUM(speedometr_end - speedometr_start) AS miles FROM productlist GROUP BY "Name"; определение суммы пробега сгруппированных по названию отряда
 
-SELECT * , speedometr_end-speedometr_start FROM productlist;
+SELECT *, (speedometr_end - speedometr_start) AS miles FROM productlist;	добавление в таблицу колонки с названием milse, значение которой является вычитание значений двух колонок
 
-DELETE FROM productlist;
+SELECT *, EXTRACT (month FROM date_departure) AS current_month FROM productlist;   текущий месяц из колонки с датой
 
-CREATE TABLE Public.FuelDirectory(govNumber varchar(15), fuelKind varchar(15), com_miles numeric, com_pump numeric, comp_withoutPump numeric)
 
-SELECT * FROM FuelDirectory;
+Сумма значений колонок выведенных в таблицу в соотетствие с номером месяца загружаемого в ручную
+SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles
+FROM productlist WHERE EXTRACT (month FROM date_departure) = 6 GROUP BY "Name";
 
 
-DROP TABLE FuelDirectory;
+SELECT EXTRACT(month FROM now())
 
-MERGE FULL OUTER JOIN productlist ON productlist.gov_number = FuelDirectory.gov_number
+SELECT * FROM current_expence;
 
-SELECT * FROM productlist, FuelDirectory WHERE gov_number = govnumber;
 
-SELECT * FROM productlist LEFT OUTER JOIN FuelDirectory ON (productlist.gov_number = FuelDirectory.govnumber);
+SELECT NOW()::TIME(0);
+SELECT NOW()::DATE;
 
-SELECT *, speedometr_end-speedometr_start AS miles, ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) AS value_com_miles,
-		  ROUND(work_pump*com_pump,3) AS values_com_pump,
-		  ROUND(without_pump*comp_withoutpump,3) AS values_com_withoutpump,
-		  ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,2) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) AS value_consumption
-		  FROM productlist LEFT OUTER JOIN FuelDirectory ON (productlist.gov_number = FuelDirectory.govnumber);
+SET timezone = 'Asia/Sakhalin';
+SHOW TIMEZONE;
+SELECT CURRENT_TIME(0);
 
-ALTER TABLE productlist DROP COLUMN value_consumption;
+SELECT EXTRACT(month FROM now())
 
-ALTER TABLE productlist ADD COLUMN value_consumption numeric;
 
-create view total_consumption_new as select 'productlist.Name', last_name, fire_auto, gov_number,  
-       work_pump + without_pump as total from productlist; - операции с COLUMNS
+SELECT * FROM productlist WHERE date_departure = CURRENT_DATE;
 
-create view total_consumption_join as select "Name", last_name, fire_auto, gov_number,  
-       work_pump + without_pump as total from productlist;
+SET timezone = 'Asia/Sakhalin';
 
-create view total_consumption_join_main as select "Name", last_name, fire_auto, gov_number,  
-       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
-	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
-	   ON (productlist.gov_number = FuelDirectory.govnumber);
+SELECT NOW();
 
-SELECT * FROM total_consumption_join_main4;
+CREATE VIEW date_current AS
+  SELECT actual_expense
+  FROM productlist
+  WHERE date_departure = CURRENT_DATE;
 
-create view total_consumption_join_main4 as select date_departure, "Name", last_name, reason_leaving, fire_auto, gov_number, speedometr_start, speedometr_end, actual_expense,  
-       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
-	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
-	   ON (productlist.gov_number = FuelDirectory.govnumber);
 
-ALTER TABLE productlist
-ALTER COLUMN "actual_expense" TYPE numeric; - изменение типа данных COLUMN ----- изменение типа столбца
+CREATE VIEW date_current1 AS SELECT SUM(actual_expense) FROM productlist WHERE date_departure = CURRENT_DATE;
 
+DROP VIEW date_current3;
 
-SELECT "Name", SUM(speedometr_end-speedometr_start) AS miles FROM productlist WHERE date_departure = current_date GROUP BY "Name";  ---пробег автомобилей за текущие сутки
 
-create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
+CREATE VIEW date_current4 AS SELECT "Name", SUM(actual_expense) FROM productlist WHERE date_departure = CURRENT_DATE;
 
-create view day_pump as SELECT "Name", SUM(work_pump) AS sum_work_pump FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
+SELECT "Name", COUNT(*) AS sumExpense
+FROM productlist
+GROUP BY "Name";
 
-SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_withoun_pump  FROM productlist WHERE date_departure = current_date GROUP BY "Name"; 
 
+SELECT "Name", SUM(actual_expense) AS sumExpense
+FROM productlist
+GROUP BY "Name";
 
-SELECT gov_number, EXTRACT(month FROM date_departure) AS number_month, MIN(speedometr_start), MAX(speedometr_end) FROM productlist GROUP BY gov_number, number_month; ---минимальное и максимальное показание спидометра распределенное по месяцам
+CREATE VIEW current_expence AS SELECT "Name", SUM(actual_expense) AS sumExpense
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
 
 
-create view raport_month as SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
-SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption, MIN(speedometr_start), MAX(speedometr_end)
-FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind; ----таблица с максимальным и минимальным значением показателей спидометра
+SELECT "Name", SUM(actual_expense) AS sumExpense
+FROM productlist WHERE date_departure = CURRENT_DATE
+GROUP BY "Name";
 
+SELECT "Name", SUM(speedometr_end - speedometr_start) AS miles FROM productlist GROUP BY "Name"; определение суммы пробега сгруппированных по названию отряда
 
-CREATE OR REPLACE VIEW total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
-       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
-	   AS value_consumption, ((speedometr_end-speedometr_start)+(work_pump*50)/60) AS overall_mileage FROM productlist LEFT OUTER JOIN FuelDirectory 
-	   ON (productlist.gov_number = FuelDirectory.govnumber);  ---- изменить и переписать представление view postgresql
+SELECT *, (speedometr_end - speedometr_start) AS miles FROM productlist;	добавление в таблицу колонки с названием milse, значение которой является вычитание значений двух колонок
 
+SELECT *, EXTRACT (month FROM date_departure) AS current_month FROM productlist;   текущий месяц из колонки с датой
 
 
-create view total_consumption_join_main as select "Name", last_name, fire_auto, gov_number,  
-       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
-	   AS value_consumption FROM productlist LEFT OUTER JOIN FuelDirectory 
-	   ON (productlist.gov_number = FuelDirectory.govnumber);
-	   
-SELECT * FROM total_consumption_join_main2;
-SELECT * FROM productlist;
-SELECT * FROM FuelDirectory;
+Сумма значений колонок выведенных в таблицу в соотетствие с номером месяца загружаемого в ручную
+SELECT "Name", SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles
+FROM productlist WHERE EXTRACT (month FROM date_departure) = 6 GROUP BY "Name";
 
-CREATE OR REPLACE VIEW total_consumption_join_main2 as select "Name", last_name, fire_auto, gov_number, speedometr_start, speedometr_end, work_pump, without_pump,actual_expense, fuelkind, (speedometr_end-speedometr_start) AS miles, EXTRACT (month FROM date_departure) AS number_month,
-       ROUND(((speedometr_end-speedometr_start) *  com_miles)/100,3) + ROUND(work_pump*com_pump,3) + ROUND(without_pump*comp_withoutpump,3) 
-	   AS value_consumption, ((speedometr_end-speedometr_start)+(work_pump*50)/60) AS overall_mileage, value_miles, miles_start_using FROM productlist right JOIN FuelDirectory 
-	   ON (productlist.gov_number = FuelDirectory.govnumber);
-	   
-CREATE OR REPLACE VIEW raport_month as SELECT "Name", last_name, fire_auto, gov_number, number_month, fuelkind, value_miles, miles_start_using, SUM(work_pump) AS sum_work_pump, SUM(without_pump) AS sum_without_pump, 
-SUM(actual_expense) AS sum_actual_response, SUM(speedometr_end - speedometr_start) AS miles, SUM(value_consumption) AS sum_value_consumption, MIN(speedometr_start), MAX(speedometr_end), SUM(overall_mileage) AS sum_overall_mileage
-FROM total_consumption_join_main2 GROUP BY "Name", last_name, fire_auto, gov_number, number_month, fuelkind, value_miles, miles_start_using;
+SELECT NOW()::TIME(0);
+SELECT NOW()::DATE;
 
-DROP view raport_month;
-SELECT * FROM raport_month;
-SELECT * FROM raport_month ORDER BY "Name" desc;
+SET timezone = 'Asia/Sakhalin';
+SHOW TIMEZONE;
+SELECT CURRENT_TIME(0);
 
+SELECT EXTRACT(month FROM now())
 
-
-SELECT * FROM base_table;
-SELECT * FROM directory;
-SELECT * FROM base_table_aggregate;
-
-DELETE FROM dataset; 			--удаление данных с таблицы 
-
-SET timezone = 'Asia/Sakhalin'; --переход на часовой пояс Сахалинской области
-
--- dataset - база данных;
--- directory - справочник ГСМ;
--- base_table - основная таблица;
--- miles_auto - пробег автомобиля;
-
-SELECT *, EXTRACT(month FROM date_out) AS number_month FROM dataset; --номер месяца из даты
-
-ALTER TABLE dataset DROP COLUMN fire_brigate;
-
-DROP VIEW base_table;
-
-
-
-
-
-
-CREATE OR REPLACE VIEW base_table AS SELECT *, 												--создание представления base_table и выбор всех столбцов (*);
-(speedo_in-speedo_out) AS miles_auto,          												--создание колонки с пробегом miles_auto;
-CASE																						--создание условия для перевода на режим зима/лето и создание колонки con_fuel_miles;
-WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
-WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
-END
-AS con_fuel_miles,
-ROUND(with_pump*d_con_pump,3) AS con_fuel_pump, 											--создание колонки с расходом при работе с насосом con_fuel_pump;
-ROUND(without_pump*d_con_without_pump,3) AS con_fuel_without_pump, 							--создание колонки с расходом при работе без насоса con_fuel_without_pump;
-(ROUND(CASE
-WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
-WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
-END, 3) + ROUND(with_pump*d_con_pump,3) + ROUND(without_pump*d_con_without_pump,3)) AS con_total, --создание колонки общего расхода ГСМ путем суммирования колонок;
-EXTRACT(month FROM date_out) AS number_month													  --создание колонки с номером месяца функцией EXTRACT;
-FROM dataset left JOIN directory 																  --объеденение таблиц dataset и directory по колонке auto_number;
-ON (dataset.auto_number = directory.d_auto_number);
-
-
-MIN(speed_out), MAX(speed_in) FROM productlist GROUP BY gov_number, number_month; ---минимальное и максимальное показание спидометра распределенное по месяцам
-
-
--- аггрегирование таблицы base_table и сортировка по номеру месяца
-CREATE OR REPLACE VIEW base_table_aggregate 
-AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month, 
-SUM(miles_auto) AS sum_miles_auto, 
-SUM(with_pump) AS sum_work_pump, 
-SUM(without_pump) AS sum_withoun_pump, 
-SUM(actual_expense) AS sum_actual_expense, 
-SUM(con_total) AS sum_con_total, 
-MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
-FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month 
-ORDER BY number_month desc; 
-
-
-CREATE OR REPLACE VIEW base_table_aggregate 
-AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month,
-SUM(miles_auto) AS sum_miles_auto, 
-SUM(with_pump) AS sum_work_pump, 
-SUM(without_pump) AS sum_withoun_pump, 
-SUM(actual_expense) AS sum_actual_expense, 
-SUM(con_total) AS sum_con_total, 
-MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
-FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month
-ORDER BY auto_number asc; 
-
-
-SELECT * FROM base_table_2;
-SELECT * FROM base_table;
-SELECT * FROM base_table_aggregate;
-SELECT * FROM directory;
-
-CREATE OR REPLACE VIEW base_table_2 AS 
-SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
-ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
-(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation
-FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
-
-SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage
-
-SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage FROM base_table_2
-
-
-
-SELECT * FROM base_table_aggregate;
-
-CREATE OR REPLACE VIEW base_table AS SELECT *, 												--создание представления base_table и выбор всех столбцов (*);
-(speedo_in-speedo_out) AS miles_auto,          												--создание колонки с пробегом miles_auto;
-CASE																						--создание условия для перевода на режим зима/лето и создание колонки con_fuel_miles;
-WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
-WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
-END
-AS con_fuel_miles,
-ROUND(with_pump*d_con_pump,3) AS con_fuel_pump, 											--создание колонки с расходом при работе с насосом con_fuel_pump;
-ROUND(without_pump*d_con_without_pump,3) AS con_fuel_without_pump, 							--создание колонки с расходом при работе без насоса con_fuel_without_pump;
-(ROUND(CASE
-WHEN date_out > '2021-04-01' then ROUND(((speedo_in-speedo_out) *  d_con_miles)/100,3)
-WHEN date_out < '2021-04-01' then ROUND(((speedo_in-speedo_out) *  winter_con_miles)/100,3)
-END, 3) + ROUND(with_pump*d_con_pump,3) + ROUND(without_pump*d_con_without_pump,3)) AS con_total, --создание колонки общего расхода ГСМ путем суммирования колонок;
-EXTRACT(month FROM date_out) AS number_month													  --создание колонки с номером месяца функцией EXTRACT;
-FROM dataset left JOIN directory 																  --объеденение таблиц dataset и directory по колонке auto_number;
-ON (dataset.auto_number = directory.d_auto_number);
-
-
-
-CREATE OR REPLACE VIEW base_table_aggregate 
-AS SELECT fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month,
-SUM(miles_auto) AS sum_miles_auto, 
-SUM(with_pump) AS sum_work_pump, 
-SUM(without_pump) AS sum_withoun_pump, 
-SUM(actual_expense) AS sum_actual_expense, 
-SUM(con_total) AS sum_con_total, 
-MIN(speedo_out), MAX(speedo_in), (MAX(speedo_in)-MIN(speedo_out)) AS test_miles
-FROM base_table GROUP BY fire_department,auto,auto_number, d_fuel_type, d_fire_brigate, number_month
-ORDER BY auto_number asc; 
-
-
-SELECT * FROM base_table_2;
-SELECT * FROM base_table;
-SELECT * FROM base_table_aggregate;
-SELECT * FROM directory;
-
-CREATE OR REPLACE VIEW base_table_2 AS 
-SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
-ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
-(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation,
-sum_actual_expense, (SUM (sum_actual_expense) over(PARTITION BY "auto_number" rows between unbounded preceding and current row)) AS sum_actual_expense_year
-FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
-
-
-
-SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage
-
-SELECT aggregate_mileage, auto_number, SUM(aggregate_mileage) over(PARTITION BY "auto_number" rows between unbounded preceding and current row) as cumulative_total_current_mileage FROM base_table_2
-
-
-
-CREATE OR REPLACE VIEW refueling_table_aggregate AS
-SELECT EXTRACT(month FROM r_date_refueling) AS number_month, r_auto_number, SUM(r_refueling) AS sum_r_refueling
-FROM refueling WHERE r_date_refueling >= '2021-01-01' GROUP BY EXTRACT(month FROM r_date_refueling), r_auto_number ORDER BY r_auto_number, number_month;
-
-SELECT * FROM refueling_table_aggregate;
-SELECT * FROM day_raport;
-
-CREATE OR REPLACE VIEW dataset_month AS
-SELECT * FROM dataset WHERE date_out > '2021-06-15';
-
-
-CREATE OR REPLACE VIEW refueling_table_aggregate2 AS 
-SELECT number_month, r_auto_number, sum_r_refueling,
-	(SUM(sum_r_refueling) over(PARTITION BY "r_auto_number" rows between unbounded preceding and current row)) AS sum_refueling_year
-FROM refueling_table_aggregate;
-
-SELECT * FROM refueling_table_aggregate2;
-SELECT * FROM base_table_2;
-SELECT * FROM aggregate_mileage;
-
-CREATE OR REPLACE VIEW aggregate_mileage AS 
-SELECT fire_department, auto,  auto_number, d_fire_brigate, base_table_2.number_month, aggregate_mileage, d_total_mileage_max_value,
-d_total_mileage_since_operation, total_mileage_since_operation, sum_actual_expense, sum_actual_expense_year, COALESCE(sum_r_refueling,0) AS sum_r_refueling, COALESCE(sum_refueling_year,0) AS sum_refueling_year
-FROM base_table_2 left JOIN refueling_table_aggregate2 																 
-ON (base_table_2.auto_number = refueling_table_aggregate2.r_auto_number AND base_table_2.number_month = refueling_table_aggregate2.number_month);
-
-DROP VIEW aggregate_mileage
-SELECT *,
-       CASE WHEN sum_r_refueling = NULL THEN 0
-            
-       END
-    FROM aggregate_mileage;
-
-
-CREATE OR REPLACE VIEW base_table_2 AS 
-SELECT fire_department,auto, auto_number, directory.d_fire_brigate, number_month, 
-ROUND (sum_miles_auto+((sum_work_pump/50)*60),3) AS aggregate_mileage, d_total_mileage_max_value, d_total_mileage_since_operation, 
-(d_total_mileage_since_operation + (SUM (ROUND (sum_miles_auto+((sum_work_pump/50)*60),3)) over(PARTITION BY "auto_number" rows between unbounded preceding and current row))) AS total_mileage_since_operation,
-sum_actual_expense, (SUM (sum_actual_expense) over(PARTITION BY "auto_number" rows between unbounded preceding and current row)) AS sum_actual_expense_year
-FROM base_table_aggregate right JOIN directory ON (base_table_aggregate.auto_number = directory.d_auto_number);
-
-
-
-
+SELECT * FROM current_expence;

@@ -1,5 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 
+DB_HOST = 'ec2-54-229-68-88.eu-west-1.compute.amazonaws.com'
+DB_NAME = "d6br3mamlectc2"
+DB_USER = "rtzklqyvvpdqcf"
+DB_PASS = "8f33893cccc6db6294049a9cb3eebd05ac2ef2c946f9c3c241b8ce45a9b6afe5"
 
 import datetime
 from datetime import date
@@ -77,6 +81,7 @@ server = app.server
 # with psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST) as conn:
 #     cur = conn.cursor()
 #     count_str = cur.execute('SELECT * FROM productlist;')
+
 
 reason = ['Взаимодействие со службами', 'ДТП', 'ЕТО', 'Заправка ГСМ', 'Иные выезда', 'Ложный', 'Обкатка после ',
           'ТО', 'Оказание помощи населению', 'Отработка нормативов ГДЗС', 'Отработка нормативов ПС и ТСП',
@@ -229,8 +234,8 @@ app.layout = html.Div([
     html.Div([
         html.Div(id='placeholder', children=[]),
         dcc.Store(id="store", data=0),
-        dcc.Interval(id='interval', interval=4000),
-        dcc.Interval(id='interval1', interval=4000),
+        dcc.Interval(id='interval', interval=5000),
+        dcc.Interval(id='interval1', interval=5000),
 
     ]),
 ], className='body')
@@ -315,7 +320,6 @@ def update_output(n_clicks, n_intervals, brigate, values, s, calendar, time_out,
     [dash.dependencies.Output('day_out', 'children'),
      dash.dependencies.Output('the_table', 'data'),
      dash.dependencies.Output("current_expence", "children"),
-
      dash.dependencies.Output("day_pump", "children"),
      dash.dependencies.Output("day_without_pump", "children"),
      dash.dependencies.Output("day_miles", "children"),
